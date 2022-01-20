@@ -1,0 +1,1 @@
+& "C:\Users\OSC\AppData\Local\Programs\Python\Python310\python.exe" "C:\Users\OSC\Desktop\Python\docx-test.py"
