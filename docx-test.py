@@ -73,7 +73,6 @@ def main():
     os.system('cls')
     # Input data into tables
     print('Applying information to templates...')
-    n = 0
     for doc in docs:
         for table in doc.tables:
             for row in table.rows:
@@ -88,9 +87,9 @@ def main():
             word_re=re.compile(word)
             docx_replace_regex(doc, word_re , replacement)
     # Save the changed files "as"
-    x = 0
     for i in tqdm(range(50), desc="Applying info to templates", ascii=True):
         sleep(0.01)
+    x = 0
     for doc in docs:
         doc.save(f"file_{x}.docx")
             # doc.save(f"pacemaker_{patient['ptName']}.docx")
