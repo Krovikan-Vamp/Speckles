@@ -1,9 +1,18 @@
-import re, os
+import re, os, openpyxl as oxl
 from time import sleep
 from docx import Document
 from datetime import date as dt
 import inquirer
 from tqdm import tqdm
+# Clearance log
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+cred = credentials.Certificate("./sa.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
 # from phaxio import PhaxioApi
 
 # convert('./medrecs/faxcover.docx')
@@ -32,7 +41,7 @@ def main():
 
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need?', choices=['Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
     prompt = inquirer.prompt(doc_question)
-
+    print(prompt['docs'])
     raw_docs = []
     docs = [Document('./medrecs/faxcover.docx')]
 
@@ -45,24 +54,26 @@ def main():
         docs.insert(0, Document(f'./medrecs/{doc}.docx'))
         # print(doc)
     # print(f"The new docs are: {docs}")
-
+    prompt['docs'].append('Faxcover')
     patient = {
-    "yourName": 'Zackery H./Franchesca G.',
-    "dateOfFax": dt.today().strftime("%B %d, %Y"),
-    "urgency": 'URGENT',
-    "numberOfPages": str(len(docs)),
-    "fNumber": input(f'What is the number you are faxing to?\n'),
-    "pNumber": input(f'What is the phone number of the facility you are faxing?\n'),
-    "drName": input(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n'),
     "ptName": input(f'What is the name of the patient?\n'),
     "dateOfBirth": input(f"What is the patient's date of birth?\n"),
-    "procedureName": input(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n'),
     "procedureDate": input(f'What is the date of the procedure?\n'),
-    "anesthesiologistName": input(f'Who is the surgeon? (Kaplan, Wong...)\n')
+    "procedureName": input(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n'),
+    "anesthesiologistName": input(f'Who is the surgeon? (Kaplan, Wong...)\n'),
+    "drName": input(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n'),
+    "pNumber": input(f'What is the phone number of the facility you are faxing?\n'),
+    "fNumber": input(f'What is the number you are faxing to?\n'),
+    "forms": prompt["docs"],
+    "dateOfFax": dt.today().strftime("%B %d, %Y"),
+    "numberOfPages": str(len(docs)),
+    "urgency": 'URGENT',
+    "yourName": 'Zackery H./Franchesca G.',
     }
     os.system('cls')
     # Input data into tables
     print('Applying information to templates...')
+    n = 0
     for doc in docs:
         for table in doc.tables:
             for row in table.rows:
@@ -79,7 +90,7 @@ def main():
     # Save the changed files "as"
     x = 0
     for i in tqdm(range(50), desc="Applying info to templates", ascii=True):
-        sleep(0.001)
+        sleep(0.01)
     for doc in docs:
         doc.save(f"file_{x}.docx")
             # doc.save(f"pacemaker_{patient['ptName']}.docx")
@@ -104,8 +115,30 @@ def main():
     os.system('powershell rm *.pdf')
     mergeFile.write(f'Request- {names[1]}, {names[0]} Med Recs Req.pdf')
     
+    # Write to excel
+    wb = oxl.Workbook() # Create workbook
+    ws = wb.active # Set active worksheet
+
+    col = 1 
+    igs = ['urgency', 'yourName', 'numberOfPages', 'fNumber']
+    patient['forms'] = ', '.join(patient['forms'])
+    patient['pNumber'] += '/' + patient['fNumber']
+    patient['pNumber'] = patient['pNumber'].replace(' ', '.')
+    patient['pNumber'] = patient['pNumber'].replace('-', '.')
+    for key, value in patient.items():
+        try:
+            igs.index(key) # See if key is ignored
+        except ValueError:
+            ws.cell(1, col, value) # Write the data
+            col += 1
+        pass
+    wb.save(f'Request- {names[1]}, {names[0]} Med Recs Req.xlsx')
+
     print(f'Adding {patient["ptName"]}...')
     os.system(r"powershell mv *.pdf 'S:\'")
+    # db.collection('Patient Clearance').document(f"{patient['ptName']} ({patient['dateOfBirth']})").set(patient)
+
+
     print('Done!')
     sleep(1)
     os.system('cls')
