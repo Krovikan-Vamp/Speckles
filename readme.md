@@ -35,7 +35,7 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
 
 ## Upcoming features
 
-With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/docx-test.py) and can be seen below...
+With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
 
 ```Python
 import phaxio
