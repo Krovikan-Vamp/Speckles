@@ -32,3 +32,20 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
     - Delete created temporary files (.pdf & .docx)
     - Merges and saves the files to a single, correctly named ('Request- Last, First Med Recs Req.pdf') files using [PyPDF2](https://pypi.org/project/PyPDF2/)
     - Writes the properties of the `dict` to a new .xlsx file with the same name as the PDF using [openpyxl](https://pypi.org/project/openpyxl/)
+
+## Upcoming features
+
+With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/docx-test.py) and can be seen below...
+
+```Python
+import phaxio
+
+def faxIt(pt):
+    fileFaxing = f"Request- {names[1]}, {names[0]} med recs req.pdf"
+    phaxio = PhaxioApi('apiKEY', 'apiSECRET')
+    phaxio.Fax.send(
+        to='receivingNumber',
+        files=fileFaxing
+    )
+faxIt(patient)
+```
