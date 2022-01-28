@@ -26,8 +26,6 @@ def docx_replace_regex(doc_obj, regex, replace):
             for cell in row.cells:
                 docx_replace_regex(cell, regex, replace)
 
-# print(patient['yourName'])
-
 
 def main():
     os.system('cls')
@@ -44,11 +42,9 @@ def main():
     for choice in prompt['docs']:
         raw_docs.append(choice)
 
-    # print(f"The docs are: {docs}")
     for doc in raw_docs:
         docs.insert(0, Document(f'./medrecs/{doc}.docx'))
-        # print(doc)
-    # print(f"The new docs are: {docs}")
+
     prompt['docs'].append('Faxcover')
     patient = {
         "ptName": input(f'What is the name of the patient?\n'),
@@ -66,6 +62,7 @@ def main():
         "yourName": 'Zackery H./Franchesca G.',
     }
     os.system('cls')
+
     # Input data into tables
     print('Applying information to templates...')
     for doc in docs:
@@ -76,11 +73,13 @@ def main():
                         for word, replacement in patient.items():
                             word_re = re.compile(word)
                             docx_replace_regex(doc, word_re, replacement)
+
     # Input data into paragraphs
     for doc in docs:
         for word, replacement in patient.items():
             word_re = re.compile(word)
             docx_replace_regex(doc, word_re, replacement)
+
     # Save the changed files "as"
     for i in tqdm(range(50), desc="Applying info to templates", ascii=True):
         sleep(0.01)
