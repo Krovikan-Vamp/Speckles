@@ -35,13 +35,17 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
 
 ## Upcoming features
 
+Features that are new or in the process of being implemented. These features are currently *Work in Progress* and still require patching to work properly but are plausible.
+
+### Faxing
+
 With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
 
 ```Python
 import phaxio
 
 def faxIt(pt):
-    fileFaxing = f"Request- {names[1]}, {names[0]} med recs req.pdf"
+    fileFaxing = f"Request- Last, First Med Recs Req.pdf"
     phaxio = PhaxioApi('apiKEY', 'apiSECRET')
     phaxio.Fax.send(
         to='receivingNumber',
@@ -49,3 +53,10 @@ def faxIt(pt):
     )
 faxIt(patient)
 ```
+
+### Auto-Completion and Suggestions
+
+Another way to save time creating and sending out medical records is to auto-complete prompts given to the user. These include the surgeon, contacted physician name, phone, and fax numbers. 
+
+Starting 1/31/2022 all data (physician name, phone, and fax numbers) submitted by the user will be stored in a [Firebase Firestore](https://firebase.google.com/products/firestore) database to be used by the program further. To provide the ability to use a new function [prompt](https://python-prompt-toolkit.readthedocs.io/en/master/index.html?) [python-prompt-toolkit](https://python-prompt-toolkit.readthedocs.io/en/master/) was the go-to choice for autocompletion.
+
