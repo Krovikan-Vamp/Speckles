@@ -49,7 +49,12 @@ def main():
     keys = ['fax', 'phone', 'dr', 'procedure']
     for doc in docs:
         for key in keys:
-            suggestion_list[key].append(doc[key])
+            # Append suggestion to list if it doesn't already exitst
+            try:
+                suggestion_list[key].index(doc[key])
+            except ValueError:
+                suggestion_list[key].append(doc[key])
+                pass;
 
     os.system('cls')
     import PyPDF2 as pdf
