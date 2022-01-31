@@ -4,12 +4,17 @@ import openpyxl as oxl
 from time import sleep
 from docx import Document
 from datetime import date as dt
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 import inquirer
 from tqdm import tqdm
+# Firebase and auto_suggestion
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
 
 # Search the doc(s) and replace data
-
-
 def docx_replace_regex(doc_obj, regex, replace):
 
     for p in doc_obj.paragraphs:
@@ -28,34 +33,52 @@ def docx_replace_regex(doc_obj, regex, replace):
 
 
 def main():
+    firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
+    db = firestore.client()
+
+    # Create Suggestions
+    raw_docs = db.collection(u'Auto Suggestions').stream()
+    docs = []
+    suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
+        'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
+
+    # Makes the docs usable as dicts
+    for doc in raw_docs:
+        docs.append(doc.to_dict())
+
+    keys = ['fax', 'phone', 'dr', 'procedure']
+    for doc in docs:
+        for key in keys:
+            suggestion_list[key].append(doc[key])
+
     os.system('cls')
     import PyPDF2 as pdf
 
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need?', choices=[
                                       'Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
-    prompt = inquirer.prompt(doc_question)
-    print(prompt['docs'])
+    og_prompt = inquirer.prompt(doc_question)
+    print(og_prompt['docs'])
     raw_docs = []
     docs = [Document('./medrecs/faxcover.docx')]
 
     # Take choices and add them to raw_docs
-    for choice in prompt['docs']:
+    for choice in og_prompt['docs']:
         raw_docs.append(choice)
 
     for doc in raw_docs:
         docs.insert(0, Document(f'./medrecs/{doc}.docx'))
 
-    prompt['docs'].append('Faxcover')
+    og_prompt['docs'].append('Faxcover')
     patient = {
-        "ptName": input(f'What is the name of the patient?\n'),
-        "dateOfBirth": input(f"What is the patient's date of birth?\n"),
-        "procedureDate": input(f'What is the date of the procedure?\n'),
-        "procedureName": input(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n'),
-        "anesthesiologistName": input(f'Who is the surgeon? (Kaplan, Wong...)\n'),
-        "drName": input(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n'),
-        "pNumber": input(f'What is the phone number of the facility you are faxing?\n'),
-        "fNumber": input(f'What is the number you are faxing to?\n'),
-        "forms": prompt["docs"],
+        "ptName": prompt(f'What is the name of the patient?\n'),
+        "dateOfBirth": prompt(f"What is the patient's date of birth?\n"),
+        "procedureDate": prompt(f'What is the date of the procedure?\n'),
+        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
+        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...)\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
+        "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
+        "pNumber": prompt(f'What is the phone number of the facility you are faxing?\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
+        "fNumber": prompt(f'What is the number you are faxing to?\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
+        "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
         "urgency": 'URGENT',
@@ -108,6 +131,11 @@ def main():
     os.system('powershell rm *.pdf')
     mergeFile.write(f'Request- {names[1]}, {names[0]} Med Recs Req.pdf')
 
+    # Add to 'suggestion' collections
+    new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
+                'dr': patient['drName'], 'procedure': patient['procedureName']}
+    db.collection('Auto Suggestions').document().set(new_info)
+
     # Write to excel
     wb = oxl.Workbook()  # Create workbook
     ws = wb.active  # Set active worksheet
@@ -137,6 +165,7 @@ def main():
 
 
 main()
+
 
 # def faxIt(pt):
 #     fileFaxing = f"Request- {names[1]}, {names[0]} med recs req.pdf"

@@ -1,21 +1,31 @@
-import openpyxl as oxl
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
+import firebase_admin
+from firebase_admin import firestore
+from firebase_admin import credentials
 
-data = {'thing1': 'thing 1 property', 'thing2': 'thing2 property'}
+firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
+db = firestore.client()
 
-workbook = oxl.Workbook()
-sheet = workbook.active
+raw_docs = db.collection(u'Testimonials').stream()
+docs = []
+suggestion_list = []
 
-def main(pt):
-    workbook = oxl.Workbook()
-    sheet = workbook.active
-    if sheet.max_row == 1:
-        cols = 1
-        for header in list(pt.keys()):
-            sheet.cell(1, cols, header)
-            cols += 1
+for doc in raw_docs:
+    docs.append(doc.to_dict())
 
-    for key, value in pt.items():
-        print(value)
-        sheet.cell(sheet.max_row + 1, 1, value)
-    workbook.save('write2cell.xlsx')
-main(data)
+for testimonial in docs:
+    # print(testimonial)
+    split = testimonial['comments'].split(' ')
+    for word in split:
+        try:
+            suggestion_list.index(word)
+        except ValueError:
+            suggestion_list.append(word)
+            pass
+
+# print(suggestion_list)
+
+test = {'test': ['<html>', '<body>', '<head>', '<title>']}
+text = prompt(f'>>  ', completer=WordCompleter(test['test']))
+print('You said: %s' % text)
