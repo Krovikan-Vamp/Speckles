@@ -4,7 +4,7 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
 
 ## Installation
 
-1. Make sure [Python](https://www.python.org/downloads/) version <= 3.10.1 is installed locallay
+1. Make sure [Python](https://www.python.org/downloads/) version >= 3.10.1 is installed locallay
     - This requires administrator privileges on company/AUUA machines
     - Contact Zack to install Python on another user to keep OSC user non-admin
     - Make sure Python was added to PATH env variable
