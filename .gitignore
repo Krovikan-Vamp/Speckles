@@ -1,1 +1,7 @@
 *.json
+*.pyc
+*.xlsx
+*.tmp
+testing.py
+med_recs.py
+/__pycache__

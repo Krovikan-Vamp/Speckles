@@ -1,17 +1,19 @@
 import re
 import os
+import inquirer
+import firebase_admin
 import openpyxl as oxl
 from time import sleep
 from docx import Document
 from datetime import date as dt
-from prompt_toolkit import prompt
-from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
-import inquirer
 from tqdm import tqdm
 # Firebase and auto_suggestion
-import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from prompt_toolkit import prompt
+from prompt_toolkit.shortcuts import ProgressBar
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 
 
 # Search the doc(s) and replace data
@@ -46,6 +48,10 @@ def main():
     for doc in raw_docs:
         docs.append(doc.to_dict())
 
+    with ProgressBar() as pb:
+        for i in pb(range(len(docs)), label=HTML('<ansired>Loading suggestions</ansired>: ')):
+            sleep(0.1)
+
     keys = ['fax', 'phone', 'dr', 'procedure']
     for doc in docs:
         for key in keys:
@@ -54,7 +60,7 @@ def main():
                 suggestion_list[key].index(doc[key])
             except ValueError:
                 suggestion_list[key].append(doc[key])
-                pass;
+                pass
 
     os.system('cls')
     import PyPDF2 as pdf
