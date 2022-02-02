@@ -77,7 +77,7 @@ docs = []
 suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
     'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
 
-# Makes the docs usable as dicts
+# Makes the docs from Firestore usable as dicts
 for doc in raw_docs:
     docs.append(doc.to_dict())
 
@@ -119,4 +119,3 @@ new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
             'dr': patient['drName'], 'procedure': patient['procedureName']}
 db.collection('Auto Suggestions').document().set(new_info)
 ```
-

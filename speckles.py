@@ -6,13 +6,12 @@ import openpyxl as oxl
 from time import sleep
 from docx import Document
 from datetime import date as dt
-from tqdm import tqdm
+from colorama import Fore, Style
 # Firebase and auto_suggestion
 from firebase_admin import credentials
 from firebase_admin import firestore
-from prompt_toolkit import prompt
-from prompt_toolkit.shortcuts import ProgressBar
-from prompt_toolkit.formatted_text import HTML
+from alive_progress import alive_bar
+from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 
 
@@ -44,23 +43,26 @@ def main():
     suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
         'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
 
+    os.system('cls')
+
     # Makes the docs usable as dicts
     for doc in raw_docs:
         docs.append(doc.to_dict())
-
-    with ProgressBar() as pb:
-        for i in pb(range(len(docs)), label=HTML('<ansired>Loading suggestions</ansired>: ')):
-            sleep(0.1)
+        # sleep(0.01)
 
     keys = ['fax', 'phone', 'dr', 'procedure']
-    for doc in docs:
-        for key in keys:
-            # Append suggestion to list if it doesn't already exitst
-            try:
-                suggestion_list[key].index(doc[key])
-            except ValueError:
-                suggestion_list[key].append(doc[key])
-                pass
+
+    with alive_bar(len(docs), title='Creating suggestions', theme='classic') as bar:
+        for doc in docs:
+            for key in keys:
+                # Append suggestion to list if it doesn't already exitst
+                try:
+                    suggestion_list[key].index(doc[key])
+                except ValueError:
+                    suggestion_list[key].append(doc[key])
+                    pass
+            # sleep(0.5)
+            bar()
 
     os.system('cls')
     import PyPDF2 as pdf
@@ -81,14 +83,14 @@ def main():
 
     og_prompt['docs'].append('Faxcover')
     patient = {
-        "ptName": prompt(f'What is the name of the patient?\n'),
-        "dateOfBirth": prompt(f"What is the patient's date of birth?\n"),
-        "procedureDate": prompt(f'What is the date of the procedure?\n'),
-        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
-        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...)\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
-        "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
-        "pNumber": prompt(f'What is the phone number of the facility you are faxing?\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
-        "fNumber": prompt(f'What is the number you are faxing to?\n', completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
+        "ptName": input(f'What is the {Fore.RED}name of the patient{Style.RESET_ALL}?\n'),
+        "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}?\n"),
+        "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}?\n'),
+        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n', bottom_toolbar=HTML(' 💭💤  Speckles is dreaming...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
+        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...)\n', bottom_toolbar=HTML('  😴 Speckles is waking up...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
+        "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML('  👀 Speckles is watching...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
+        "pNumber": prompt(f'What is the phone number of the facility you are faxing?\n', bottom_toolbar=HTML('  🤔 Speckles is questioning life...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
+        "fNumber": prompt(f'What is the number you are faxing to?\n', bottom_toolbar=HTML('  ⚰️  Speckles is dead now...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
         "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
@@ -98,7 +100,7 @@ def main():
     os.system('cls')
 
     # Input data into tables
-    print('Applying information to templates...')
+    # print('Applying information to templates...')
     for doc in docs:
         for table in doc.tables:
             for row in table.rows:
@@ -115,14 +117,14 @@ def main():
             docx_replace_regex(doc, word_re, replacement)
 
     # Save the changed files "as"
-    for i in tqdm(range(50), desc="Applying info to templates", ascii=True):
-        sleep(0.01)
     x = 0
-    for doc in docs:
-        doc.save(f"file_{x}.docx")
-        # doc.save(f"pacemaker_{patient['ptName']}.docx")
-        if docs.index(doc) != len(docs) - 1:
-            x += 1
+    with alive_bar(title='Applying information to templates', bar='fish') as bar:
+        for doc in docs:
+            doc.save(f"file_{x}.docx")
+            # doc.save(f"pacemaker_{patient['ptName']}.docx")
+            if docs.index(doc) != len(docs) - 1:
+                x += 1
+            bar()
 
     # Edit files to be PDFs
     print('Converting to PDFs...')
