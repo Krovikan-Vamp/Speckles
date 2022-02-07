@@ -5,12 +5,13 @@ import firebase_admin
 import openpyxl as oxl
 from time import sleep
 from docx import Document
+from alive_progress import alive_bar
 from datetime import date as dt
 from colorama import Fore, Style
+# from phaxio import PhaxioApi
 # Firebase and auto_suggestion
 from firebase_admin import credentials
 from firebase_admin import firestore
-from alive_progress import alive_bar
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 
@@ -67,10 +68,16 @@ def main():
     os.system('cls')
     import PyPDF2 as pdf
 
-    doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need?', choices=[
+    doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
                                       'Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
+    specialist_question = [inquirer.List(
+        'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro'])]
     og_prompt = inquirer.prompt(doc_question)
-    print(og_prompt['docs'])
+    spec_prompt = inquirer.prompt(specialist_question)
+    # print(og_prompt['docs'])
+    print(
+        f'Here is the chosen specialist: {spec_prompt["specialist"]}')
+    sleep(2)
     raw_docs = []
     docs = [Document('./medrecs/faxcover.docx')]
 
@@ -83,14 +90,14 @@ def main():
 
     og_prompt['docs'].append('Faxcover')
     patient = {
-        "ptName": input(f'What is the {Fore.RED}name of the patient{Style.RESET_ALL}?\n'),
-        "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}?\n"),
-        "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}?\n'),
-        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate))\n', bottom_toolbar=HTML(' 💭💤  Speckles is dreaming...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
-        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...)\n', bottom_toolbar=HTML('  😴 Speckles is waking up...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
+        "ptName": input(f'What is the {Fore.RED}name of the patient{Style.RESET_ALL}? 🧍\n'),
+        "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}? 📅\n"),
+        "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}? 📅\n'),
+        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(' 💭💤  Speckles is dreaming...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
+        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML('  😴 Speckles is waking up...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
         "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML('  👀 Speckles is watching...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
-        "pNumber": prompt(f'What is the phone number of the facility you are faxing?\n', bottom_toolbar=HTML('  🤔 Speckles is questioning life...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
-        "fNumber": prompt(f'What is the number you are faxing to?\n', bottom_toolbar=HTML('  ⚰️  Speckles is dead now...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
+        "pNumber": prompt(f'What is the phone number of the facility you are faxing? 📞\n', bottom_toolbar=HTML('  🤔 Speckles is questioning life...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
+        "fNumber": prompt(f'What is the number you are faxing to? 📠\n', bottom_toolbar=HTML('  ⚰️  Speckles is dead now...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
         "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
@@ -142,7 +149,8 @@ def main():
     names = patient['ptName'].split(' ')
     os.system('powershell rm *.docx')
     os.system('powershell rm *.pdf')
-    mergeFile.write(f'Request- {names[1]}, {names[0]} Med Recs Req.pdf')
+    mergeFile.write(
+        f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.pdf')
 
     # Add to 'suggestion' collections
     new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
@@ -159,6 +167,7 @@ def main():
     patient['pNumber'] += '/' + patient['fNumber']
     patient['pNumber'] = patient['pNumber'].replace(' ', '.')
     patient['pNumber'] = patient['pNumber'].replace('-', '.')
+    patient['drName'] = f'{spec_prompt["specialist"]}: {patient["drName"]}'
     for key, value in patient.items():
         try:
             igs.index(key)  # See if key is ignored
@@ -166,9 +175,11 @@ def main():
             ws.cell(1, col, value)  # Write the data
             col += 1
         pass
-    wb.save(f'Request- {names[1]}, {names[0]} Med Recs Req.xlsx')
+    wb.save(
+        f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.xlsx')
 
     # Move patient to the scans folder
+
     print(f'Adding {patient["ptName"]}...')
     os.system(r"powershell mv *.pdf 'S:\'")
     print("Don't forget to add them to the log! Check the new '.xlsx' file!")
@@ -179,12 +190,16 @@ def main():
 
 main()
 
-
 # def faxIt(pt):
-#     fileFaxing = f"Request- {names[1]}, {names[0]} med recs req.pdf"
-#     phaxio = PhaxioApi('326hm7hwwjgtnh18qo66lauwmx4oc8wf2vbth6he', '014a3atyonq17kx4ftixk6orfs0addix5yowk9jd')
+#     fileFaxing = f"Request- {names[1]}, {names[0]} {spec_prompt['specialist']} Med Recs Req.pdf"
+#     pt['fNumber'] = pt['fNumber'].replace(' ', '.')
+#     pt['fNumber'] = pt['fNumber'].replace('-', '.')
+#     faxNumber = pt['fNumber']
+#     phaxio = PhaxioApi('7kgdmam2fdb4b3526751we7s5dim88s0u7n3kwxe',
+#                        'bncxks0w76uods89k57h2kjvo8ykjxlytd306vnp')
 #     phaxio.Fax.send(
-#         to='6233221504',
-#         files=fileFaxing
+#         to=faxNumber,
+#         files=fileFaxing,
+#         # direction='received'
 #     )
 # faxIt(patient)
