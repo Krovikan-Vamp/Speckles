@@ -71,7 +71,7 @@ def main():
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
                                       'Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
     specialist_question = [inquirer.List(
-        'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro'])]
+        'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro', 'Neuro'])]
     og_prompt = inquirer.prompt(doc_question)
     spec_prompt = inquirer.prompt(specialist_question)
     # print(og_prompt['docs'])
