@@ -107,7 +107,6 @@ def main():
     os.system('cls')
 
     # Input data into tables
-    # print('Applying information to templates...')
     for doc in docs:
         for table in doc.tables:
             for row in table.rows:
@@ -153,8 +152,19 @@ def main():
         f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.pdf')
 
     # Add to 'suggestion' collections
-    new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
-                'dr': patient['drName'], 'procedure': patient['procedureName']}
+    def encrypt2(data):
+        def split(word):
+            return [char for char in word]
+
+        arr = []
+        chars = split(data)
+
+        for char in chars:
+            arr.append(ord(char) + 25)
+
+        return arr
+    new_info = {'fax': encrypt2(patient['fNumber']), 'phone': encrypt2(patient['pNumber']), 'drType': encrypt2(spec_prompt['specialist']),
+                'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName'])}
     db.collection('Auto Suggestions').document().set(new_info)
 
     # Write to excel
