@@ -34,6 +34,29 @@ def docx_replace_regex(doc_obj, regex, replace):
                 docx_replace_regex(cell, regex, replace)
 
 
+def decrypt(data):
+    arr = []
+    for char in data:
+        temp = int(char) - 25
+        arr.append(chr(temp))
+        # print(char)
+
+    return ''.join(arr)
+
+
+def encrypt2(data):
+    def split(word):
+        return [char for char in word]
+
+    arr = []
+    chars = split(data)
+
+    for char in chars:
+        arr.append(ord(char) + 25)
+
+    return arr
+
+
 def main():
     firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
     db = firestore.client()
@@ -50,7 +73,16 @@ def main():
     for doc in raw_docs:
         docs.append(doc.to_dict())
         # sleep(0.01)
-
+    for doc in docs:
+        print(f'Working with this doc... \n{doc}')
+        sleep(2)
+        for [key, value] in doc.items():
+            print(f'The key is: {key}')
+            print(f'The value is: {value}')
+            sleep(2)
+            doc[key] = decrypt(value)
+    print(f'Here are the docs: {docs}')
+    sleep(5)
     keys = ['fax', 'phone', 'dr', 'procedure']
 
     with alive_bar(len(docs), title='Creating suggestions', theme='classic') as bar:
@@ -65,7 +97,7 @@ def main():
             # sleep(0.5)
             bar()
 
-    os.system('cls')
+    # os.system('cls')
     import PyPDF2 as pdf
 
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
@@ -152,17 +184,6 @@ def main():
         f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.pdf')
 
     # Add to 'suggestion' collections
-    def encrypt2(data):
-        def split(word):
-            return [char for char in word]
-
-        arr = []
-        chars = split(data)
-
-        for char in chars:
-            arr.append(ord(char) + 25)
-
-        return arr
     new_info = {'fax': encrypt2(patient['fNumber']), 'phone': encrypt2(patient['pNumber']), 'drType': encrypt2(spec_prompt['specialist']),
                 'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName'])}
     db.collection('Auto Suggestions').document().set(new_info)

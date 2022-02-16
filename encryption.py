@@ -1,25 +1,12 @@
-import pyperclip as pc
-
-
 def split(word):
     return [char for char in word]
 
 
-def encrypt(data):
-    arr = []
-    split_data = split(data)
-
-    for char in split_data:
-        new_char = ord(char) + 25
-        # new_char.to_bytes(len(char), 'little')
-        arr.append(str(new_char.to_bytes(len(char), 'little')))
-    arr = ''.join(arr)
-    pc.copy(arr)
-
-    return f'{data} >>>> {arr}'
-
-
 def encrypt2(data):
+    '''
+    :param data: Data to encrypt
+    :type data: str
+    '''
     arr = []
     chars = split(data)
 
@@ -31,7 +18,6 @@ def encrypt2(data):
 
 def decrypt(data):
     arr = []
-
     for char in data:
         temp = int(char) - 25
         arr.append(chr(temp))
@@ -40,4 +26,4 @@ def decrypt(data):
     return f'{data} >>>> {"".join(arr)}'
 
 
-print(encrypt2("623.399.6880"))
+print(decrypt([79, 75, 76, 71, 76, 82, 82, 71, 79, 81, 81, 73]))
