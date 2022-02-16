@@ -58,6 +58,7 @@ def encrypt2(data):
 
 
 def main():
+    os.system('cls')
     firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
     db = firestore.client()
 
@@ -70,22 +71,17 @@ def main():
     os.system('cls')
 
     # Makes the docs usable as dicts
-    for doc in raw_docs:
-        docs.append(doc.to_dict())
-        # sleep(0.01)
-    for doc in docs:
-        print(f'Working with this doc... \n{doc}')
-        sleep(2)
-        for [key, value] in doc.items():
-            print(f'The key is: {key}')
-            print(f'The value is: {value}')
-            sleep(2)
-            doc[key] = decrypt(value)
-    print(f'Here are the docs: {docs}')
-    sleep(5)
-    keys = ['fax', 'phone', 'dr', 'procedure']
-
     with alive_bar(len(docs), title='Creating suggestions', theme='classic') as bar:
+        for doc in raw_docs:
+            docs.append(doc.to_dict())
+            # sleep(0.01)
+        for doc in docs:
+            sleep(.25)
+            for [key, value] in doc.items():
+                # print(f'{key} ==> {value}')
+                doc[key] = decrypt(value)
+        keys = ['fax', 'phone', 'dr', 'procedure']
+
         for doc in docs:
             for key in keys:
                 # Append suggestion to list if it doesn't already exitst
@@ -97,7 +93,7 @@ def main():
             # sleep(0.5)
             bar()
 
-    # os.system('cls')
+    os.system('cls')
     import PyPDF2 as pdf
 
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
@@ -107,9 +103,7 @@ def main():
     og_prompt = inquirer.prompt(doc_question)
     spec_prompt = inquirer.prompt(specialist_question)
     # print(og_prompt['docs'])
-    print(
-        f'Here is the chosen specialist: {spec_prompt["specialist"]}')
-    sleep(2)
+
     raw_docs = []
     docs = [Document('./medrecs/faxcover.docx')]
 
@@ -185,7 +179,7 @@ def main():
 
     # Add to 'suggestion' collections
     new_info = {'fax': encrypt2(patient['fNumber']), 'phone': encrypt2(patient['pNumber']), 'drType': encrypt2(spec_prompt['specialist']),
-                'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName'])}
+                'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName']), 'n': encrypt2(patient['ptName'])}
     db.collection('Auto Suggestions').document().set(new_info)
 
     # Write to excel
