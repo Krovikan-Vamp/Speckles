@@ -3,6 +3,8 @@ import os
 import inquirer
 import firebase_admin
 import openpyxl as oxl
+import rsa
+from rsa import PrivateKey, PublicKey
 from time import sleep
 from docx import Document
 from alive_progress import alive_bar
