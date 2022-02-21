@@ -2,6 +2,8 @@
 *.pyc
 *.xlsx
 *.tmp
+*.txt
+privKey.pem
 testing.py
 med_recs.py
 /__pycache__

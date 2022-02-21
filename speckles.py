@@ -6,16 +6,21 @@ import openpyxl as oxl
 import rsa
 from rsa import PrivateKey, PublicKey
 from time import sleep
+import time
 from docx import Document
 from alive_progress import alive_bar
 from datetime import date as dt
+from datetime import datetime
 from colorama import Fore, Style
 # from phaxio import PhaxioApi
+
 # Firebase and auto_suggestion
-from firebase_admin import credentials
-from firebase_admin import firestore
+from firebase_admin import credentials, firestore, storage
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
+
+# Load public key from dir
+pubKey = rsa.PublicKey.load_pkcs1(open("pubKey.pem", "rb").read())
 
 
 # Search the doc(s) and replace data
@@ -61,7 +66,8 @@ def encrypt2(data):
 
 def main():
     os.system('cls')
-    firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
+    firebase_admin.initialize_app(credentials.Certificate(
+        './sa.json'), {'storageBucket': 'fourpeaks-sc.appspot.com'})
     db = firestore.client()
 
     # Create Suggestions
@@ -78,7 +84,7 @@ def main():
             docs.append(doc.to_dict())
             # sleep(0.01)
         for doc in docs:
-            sleep(.25)
+            # sleep(.25)
             for [key, value] in doc.items():
                 # print(f'{key} ==> {value}')
                 doc[key] = decrypt(value)
@@ -184,6 +190,20 @@ def main():
                 'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName']), 'n': encrypt2(patient['ptName'])}
     db.collection('Auto Suggestions').document().set(new_info)
 
+    def add_storage(pt):
+        # time.time()
+        stamp = str(time.time())
+        encName = rsa.encrypt(pt['ptName'].encode(), pubKey)
+
+        with open(f"{stamp}.bytes", "wb") as f:
+            f.write(encName)
+            f.close()
+
+        bucket = storage.bucket()
+        fileName = f'{stamp}.bytes'
+        blob = bucket.blob(fileName)
+        blob.upload_from_filename(fileName)
+    add_storage(patient)
     # Write to excel
     wb = oxl.Workbook()  # Create workbook
     ws = wb.active  # Set active worksheet
