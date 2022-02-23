@@ -4,13 +4,11 @@ import inquirer
 import firebase_admin
 import openpyxl as oxl
 import rsa
-from rsa import PrivateKey, PublicKey
 from time import sleep
 import time
 from docx import Document
 from alive_progress import alive_bar
 from datetime import date as dt
-from datetime import datetime
 from colorama import Fore, Style
 # from phaxio import PhaxioApi
 
@@ -107,7 +105,7 @@ def main():
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
                                       'Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
     specialist_question = [inquirer.List(
-        'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro', 'Neuro'])]
+        'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro', 'Neuro', 'Hema'])]
     og_prompt = inquirer.prompt(doc_question)
     spec_prompt = inquirer.prompt(specialist_question)
     # print(og_prompt['docs'])
@@ -194,7 +192,7 @@ def main():
         # time.time()
         stamp = str(time.time())
         encName = rsa.encrypt(pt['ptName'].encode(), pubKey)
-
+        os.system('cd Bytes')
         with open(f"{stamp}.bytes", "wb") as f:
             f.write(encName)
             f.close()
@@ -203,6 +201,7 @@ def main():
         fileName = f'{stamp}.bytes'
         blob = bucket.blob(fileName)
         blob.upload_from_filename(fileName)
+        os.system(f'powershell mv {fileName} Bytes')
     add_storage(patient)
     # Write to excel
     wb = oxl.Workbook()  # Create workbook
