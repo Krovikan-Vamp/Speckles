@@ -74,9 +74,9 @@ def fax(patient):
     driver.get('https://secure.ipfax.net/')
     # Login to the fax service
     driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('')
+        by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('6233221504')
     driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('')
+        by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('6233221504!')
     driver.find_element(
         by=By.XPATH, value='/html/body/form[1]/div/div[4]/input').click()
     driver.find_element(
