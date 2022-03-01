@@ -68,7 +68,8 @@ def encrypt2(data):
 
 
 def fax(patient):
-    forms = ', '.join(patient["forms"])
+    faxNo = patient["fNumber"].replace('.', '')
+    # forms = ', '.join(patient["forms"])
     chromedriver_autoinstaller.install()
     driver = webdriver.Chrome(service=Service())
     driver.get('https://secure.ipfax.net/')
@@ -86,20 +87,20 @@ def fax(patient):
     driver.find_element(
         by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[1]/div/input').send_keys('Medical Records')
     driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[2]/div/input').send_keys(f'{patient["ptName"]} -- {forms}')
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[2]/div/input').send_keys(f'{patient["ptName"]} -- {patient["forms"]}')
     driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[1]/input').send_keys(patient['fNumber'])
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[1]/input').send_keys(faxNo)
     driver.find_element(
         by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[2]/input').click()
     driver.find_element(
         by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[7]/button').click()
 
     # Choose file with PyAutoGui
-    sleep(1)
+    sleep(2)
     pag.hotkey('ctrl', 'l')
     pag.write(f'S:\\')
     pag.press('enter')
-    sleep(1)
+    sleep(2)
     pag.press('tab', 4, 0.25)
     pag.press('down')
     pag.press('up')
@@ -110,7 +111,7 @@ def fax(patient):
     # Send the fax
     driver.find_element(
         by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[3]/div[1]/input').click()
-    # sleep(5)
+    sleep(3)
     driver.close()
 
 
@@ -279,8 +280,9 @@ def main():
     # Move patient to the scans folder
 
     print(f'Adding {patient["ptName"]}...')
-    fax(patient)
     os.system(r"powershell mv *.pdf 'S:\'")
+    sleep(1)
+    fax(patient)
     print("Don't forget to add them to the log! Check the new '.xlsx' file!")
     sleep(5)
     os.system('cls')
