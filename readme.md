@@ -35,11 +35,68 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
     - Merges and saves the files to a single, correctly named ('Request- Last, First Med Recs Req.pdf') files using [PyPDF2](https://pypi.org/project/PyPDF2/)
     - Writes the properties of the `dict` to a new .xlsx file with the same name as the PDF using [openpyxl](https://pypi.org/project/openpyxl/)
 
+## Features
+
+### Faxing
+
+Awaiting confirmation to use [Phaxio](https://www.phaxio.com/), the current application of faxing comes with the use of [Selenium for Python](https://selenium-python.readthedocs.io/) and [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/). It uses the development browser created by selenium to manipulate (enter credentials and click buttons) webpages. PyAutoGUI is used to select the most recent file added to the "scans" drive hosted by a computer on the network.
+
+As you can see below, faxing this information through Phaxio would be a much cleaner option, but like with most coding; it can be done 1001 ways.
+
+```Python
+def fax(patient):
+    faxNo = patient["fNumber"].replace('.', '')
+    # forms = ', '.join(patient["forms"])
+    chromedriver_autoinstaller.install()
+    driver = webdriver.Chrome(service=Service())
+    driver.get('https://secure.ipfax.net/')
+    # Login to the fax service
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('username')
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('password')
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div[4]/input').click()
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div[5]/div/input').click()
+
+    #  Fill out the fields
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[1]/div/input').send_keys('Medical Records')
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[2]/div/input').send_keys(f'{patient["ptName"]} -- {patient["forms"]}')
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[1]/input').send_keys(faxNo)
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[2]/input').click()
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[7]/button').click()
+
+    # Choose file with PyAutoGui
+    sleep(2)
+    pag.hotkey('ctrl', 'l')
+    pag.write(f'S:\\')
+    pag.press('enter')
+    sleep(2)
+    pag.press('tab', 4, 0.25)
+    pag.press('down')
+    pag.press('up')
+    pag.press('enter')
+    # Sleep to allow ipfax to process file
+    sleep(2)
+
+    # Send the fax
+    driver.find_element(
+        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[3]/div[1]/input').click()
+    sleep(3)
+    driver.close()
+```
+
 ## Upcoming features
 
 Features that are new or in the process of being implemented. These features are currently *Work in Progress* and still require patching to work properly but are plausible.
 
-### Faxing
+### Faxing (no selenium)
 
 With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
 
