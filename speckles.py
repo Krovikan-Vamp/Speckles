@@ -4,8 +4,11 @@ import inquirer
 import firebase_admin
 import openpyxl as oxl
 import rsa
-from time import sleep
 import time
+import requests
+import json
+import random
+from time import sleep
 from docx import Document
 from alive_progress import alive_bar
 from datetime import date as dt
@@ -67,55 +70,42 @@ def encrypt2(data):
     return arr
 
 
-def fax(patient):
-    faxNo = patient["fNumber"].replace('.', '')
-    # forms = ', '.join(patient["forms"])
-    chromedriver_autoinstaller.install()
-    driver = webdriver.Chrome(service=Service())
-    driver.get('https://secure.ipfax.net/')
-    # Login to the fax service
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('6233221504')
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('6233221504!')
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[4]/input').click()
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div[5]/div/input').click()
+def speckles():
+    global responses
+    weather_speck = json.loads(requests.get(
+        'https://api.openweathermap.org/data/2.5/weather?q=Sun City&units=imperial&appid=396b8dda92a5079f3bbf2704d32fc382').text)
 
-    #  Fill out the fields
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[1]/div/input').send_keys('Medical Records')
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[2]/div/input').send_keys(f'{patient["ptName"]} -- {patient["forms"]}')
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[1]/input').send_keys(faxNo)
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[2]/input').click()
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[7]/button').click()
+    yeQuotes = []
+    activities = []
 
-    # Choose file with PyAutoGui
-    sleep(2)
-    pag.hotkey('ctrl', 'l')
-    pag.write(f'S:\\')
-    pag.press('enter')
-    sleep(2)
-    pag.press('tab', 4, 0.25)
-    pag.press('down')
-    pag.press('up')
-    pag.press('enter')
-    # Sleep to allow ipfax to process file
-    sleep(2)
+    for n in range(5):
+        # Kayne quotes
+        quote = json.loads(requests.get('https://api.kanye.rest/').text)
+        yeQuotes.append(quote['quote'])
+        # Activities
+        action = json.loads(requests.get(
+            'https://www.boredapi.com/api/activity').text)
+        activities.append(
+            f"With {action['participants']} person/people you can... {action['activity']}.")
 
-    # Send the fax
-    driver.find_element(
-        by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[3]/div[1]/input').click()
-    sleep(3)
-    driver.close()
+    responses = [{
+        'name': 'Speckles, the Meteorologist 📡',
+        'prompts': ['<p style="text-align: center; padding: 10px;">🐍 - "Good morning, welcome to the Speckles weather channel!" 😎   </p> ', f'<p style="text-align: center; padding: 10px;">Today is 📅 {dt.today().strftime("%B %d, %Y")} 🐍 - "When is the next holiday again?"</p>', f"<p style='text-align: center; padding: 10px;'>It's feeling like {weather_speck['main']['feels_like']}°F 🐍 - 'Always too damn hot'</p> ", f"The clouds cover {weather_speck['clouds']['all']}% of the sky ☁️ 🐍 - 'Wish it was more...'", f"Get ready for a daily high of: {weather_speck['main']['temp_max']}°F 🤠 'Yee haw'"]
+    }, {
+        'name': 'Speckles, the Kanye Enthusiast 🎵 ',
+        'prompts': yeQuotes
+    }, {
+        'name': 'Speckles, the Trip Planner 🚗 ',
+        'prompts': activities
+    }]
+
+
+speckles()
 
 
 def main():
+
+    speck_time = random.choice(responses)
     os.system('cls')
     firebase_admin.initialize_app(credentials.Certificate(
         './sa.json'), {'storageBucket': 'fourpeaks-sc.appspot.com'})
@@ -155,6 +145,7 @@ def main():
     os.system('cls')
     import PyPDF2 as pdf
 
+    print(f'You got {speck_time["name"]}!\n')
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
                                       'Anticoagulant', 'A1c Tests', 'Pacemaker', 'Clearance'])]
     specialist_question = [inquirer.List(
@@ -178,11 +169,11 @@ def main():
         "ptName": input(f'What is the {Fore.RED}name of the patient{Style.RESET_ALL}? 🧍\n'),
         "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}? 📅\n"),
         "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}? 📅\n'),
-        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(' 💭💤  Speckles is dreaming...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
-        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML('  😴 Speckles is waking up...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
-        "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML('  👀 Speckles is watching...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
-        "pNumber": prompt(f'What is the phone number of the facility you are faxing? 📞\n', bottom_toolbar=HTML('  🤔 Speckles is questioning life...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
-        "fNumber": prompt(f'What is the number you are faxing to? 📠\n', bottom_toolbar=HTML('  ⚰️  Speckles is dead now...   '), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
+        "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(speck_time["prompts"][0]), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
+        "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML(speck_time["prompts"][1]), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
+        "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML(speck_time["prompts"][2]), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
+        "pNumber": prompt(f'What is the phone number of the facility you are faxing? 📞\n', bottom_toolbar=HTML(speck_time["prompts"][3]), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
+        "fNumber": prompt(f'What is the number you are faxing to? 📠\n', bottom_toolbar=HTML(speck_time["prompts"][4]), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
         "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
@@ -282,6 +273,56 @@ def main():
     print(f'Adding {patient["ptName"]}...')
     os.system(r"powershell mv *.pdf 'S:\'")
     sleep(1)
+
+    def fax(patient):
+        faxNo = patient["fNumber"].replace('.', '')
+        # forms = ', '.join(patient["forms"])
+        chromedriver_autoinstaller.install()
+        driver = webdriver.Chrome(service=Service())
+        driver.get('https://secure.ipfax.net/')
+        # Login to the fax service
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('6233221504')
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('6233221504!')
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div[4]/input').click()
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div[5]/div/input').click()
+
+        #  Fill out the fields
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[1]/div/input').send_keys('Medical Records')
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[1]/div[2]/div/input').send_keys(f'{patient["ptName"]} -- {patient["forms"]}')
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[1]/input').send_keys(faxNo)
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[2]/input').click()
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[7]/button').click()
+
+        # Choose file with PyAutoGui
+        # sleep(2)
+        # pag.hotkey('ctrl', 'l')
+        # pag.write(f'S:\\')
+        # pag.press('enter', 2, 1)
+        sleep(2)
+        pag.write(
+            f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.pdf')
+        # pag.press('tab', 4, 0.25)
+        # pag.press('down')
+        # pag.press('up')
+        pag.press('enter')
+        # Sleep to allow ipfax to process file
+        sleep(2)
+
+        # Send the fax
+        driver.find_element(
+            by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[3]/div[1]/input').click()
+        sleep(7)
+        driver.close()
+
     fax(patient)
     print("Don't forget to add them to the log! Check the new '.xlsx' file!")
     sleep(5)
