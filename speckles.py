@@ -76,17 +76,21 @@ def speckles():
         'https://api.openweathermap.org/data/2.5/weather?q=Sun City&units=imperial&appid=396b8dda92a5079f3bbf2704d32fc382').text)
 
     yeQuotes = []
+    bookQuotes = []
     activities = []
 
     for n in range(5):
         # Kayne quotes
         quote = json.loads(requests.get('https://api.kanye.rest/').text)
+        bQuote = json.loads(requests.get('https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
         yeQuotes.append(quote['quote'])
+        
         # Activities
         action = json.loads(requests.get(
             'https://www.boredapi.com/api/activity').text)
         activities.append(
             f"With {action['participants']} person/people you can... {action['activity']}.")
+        bookQuotes.append(f'"{bQuote[n]["quote_body"]} - {bQuote[n]["quote_author"]}"')
 
     responses = [{
         'name': 'Speckles, the Meteorologist 📡',
@@ -97,6 +101,9 @@ def speckles():
     }, {
         'name': 'Speckles, the Trip Planner 🚗 ',
         'prompts': activities
+    }, {
+        'name': 'Speckles, The Philosopher 🤓',
+        'prompts': bookQuotes
     }]
 
 
@@ -104,7 +111,7 @@ speckles()
 
 
 def main():
-
+    # 
     speck_time = random.choice(responses)
     os.system('cls')
     firebase_admin.initialize_app(credentials.Certificate(
