@@ -2,6 +2,8 @@
 
 A quick overview on the installation process and usage of the `docx-test.py` script. Other scripts in this repository are older versions using terribly outdated tactics to achieve the same goal. Contact the [creator](https://github.com/Krovikan-Vamp) with question about their processes.
 
+The goal of this project is to save the company time and money by automating major parts of the medical records department. The original way to complete these requisitions would take on average 9 minutes per person. Now it takes 20 seconds.
+
 ## Installation
 
 1. Make sure [Python](https://www.python.org/downloads/) version >= 3.10.1 is installed locallay
@@ -12,6 +14,7 @@ A quick overview on the installation process and usage of the `docx-test.py` scr
 3. Download [Visual Studio Code](https://code.visualstudio.com/) as an administrator 
 4. Request a Service Account key from the [administrator](https://github.com/Krovikan-Vamp)
     - Ensure the Account key is stored in the root directory of the cloned repository.
+5. Install the dependencies from the reqs file using `pip install -r reqs.txt`
 
 ## Using the Script
 
@@ -92,27 +95,6 @@ def fax(patient):
     driver.close()
 ```
 
-## Upcoming features
-
-Features that are new or in the process of being implemented. These features are currently *Work in Progress* and still require patching to work properly but are plausible.
-
-### Faxing (no selenium)
-
-With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
-
-```Python
-import phaxio
-
-def faxIt(pt):
-    fileFaxing = f"Request- Last, First Med Recs Req.pdf"
-    phaxio = PhaxioApi('apiKEY', 'apiSECRET')
-    phaxio.Fax.send(
-        to='receivingNumber',
-        files=fileFaxing
-    )
-faxIt(patient)
-```
-
 ### Auto-Completion and Suggestions
 
 Another way to save time creating and sending out medical records is to auto-complete prompts given to the user. These include the surgeon, contacted physician name, phone, and fax numbers. 
@@ -176,3 +158,98 @@ new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
             'dr': patient['drName'], 'procedure': patient['procedureName']}
 db.collection('Auto Suggestions').document().set(new_info)
 ```
+
+### Speckles' Personality
+
+Using the Python `requests` library, it is easy to obtain data from free and open APIs. As of now, there are 4 versions of Speckles....
+
+1. Speckles, the Meteorologist 📡
+    - Provides real-time weather data from [OpenWeather API](https://api.openweathermap.org/data/2.5/)
+    - Real-feel, cloud cover, rain chance, etc...
+2. Speckles, the Kanye Enthusiast 🎵
+    - Gives the user random Ye quotes from [Kanye Rest API](https://api.kanye.rest/). Shoutout to the devs of this API, what a gem! @ajzbc on Twitter.
+3. Speckles, the Activity Planner 🚗
+    - Explains random activites the user can do if they're bored using [Bored API](https://www.boredapi.com/api/activity)
+4. Speckles, The Philosopher 🤓
+    - Provides the user with quotes from books in their data base... [QuotePub](https://www.quotepub.com/api/widget/?type=rand)
+
+Here is the code for giving Speckles his personality!
+
+```Python
+def speckles():
+    global responses
+    weather_speck = json.loads(requests.get(
+        'https://api.openweathermap.org/data/2.5/weather?q=Sun City&units=imperial&appid=396b8dda92a5079f3bbf2704d32fc382').text)
+
+    yeQuotes = []
+    bookQuotes = []
+    activities = []
+
+    for n in range(5):
+        # Kayne quotes
+        quote = json.loads(requests.get('https://api.kanye.rest/').text)
+        bQuote = json.loads(requests.get(
+            'https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
+        yeQuotes.append(quote['quote'])
+
+        # Activities
+        action = json.loads(requests.get(
+            'https://www.boredapi.com/api/activity').text)
+        activities.append(
+            f"With {action['participants']} person/people you can... {action['activity']}.")
+        bookQuotes.append(
+            f'"{bQuote[n]["quote_body"]} - {bQuote[n]["quote_author"]}"')
+
+    responses = [{
+        'name': 'Speckles, the Meteorologist 📡',
+        'prompts': ['<p style="text-align: center; padding: 10px;">🐍 - "Good morning, welcome to the Speckles weather channel!" 😎   </p> ', f'<p style="text-align: center; padding: 10px;">Today is 📅 {dt.today().strftime("%B %d, %Y")} 🐍 - "When is the next holiday again?"</p>', f"<p style='text-align: center; padding: 10px;'>It's feeling like {weather_speck['main']['feels_like']}°F 🐍 - 'Always too damn hot'</p> ", f"The clouds cover {weather_speck['clouds']['all']}% of the sky ☁️ 🐍 - 'Wish it was more...'", f"Get ready for a daily high of: {weather_speck['main']['temp_max']}°F 🤠 'Yee haw'"]
+    }, {
+        'name': 'Speckles, the Kanye Enthusiast 🎵 ',
+        'prompts': yeQuotes
+    }, {
+        'name': 'Speckles, the Activity Planner 🚗 ',
+        'prompts': activities
+    }, {
+        'name': 'Speckles, The Philosopher 🤓',
+        'prompts': bookQuotes
+    }]
+```
+
+After all being created (*I may consider doing this asynchronously...*) `random.choice()` chooses one for the rest of the prompts...
+
+```Python
+def main():
+    speck_time = random.choice(responses)
+```
+
+Then they are added to the prompts' toolbar
+
+```Python
+
+"procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(speck_time["prompts"][0]), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
+"anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML(speck_time["prompts"][1]), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
+"drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML(speck_time["prompts"][2]), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
+"pNumber": prompt(f'What is the phone number of the facility you are faxing? 📞\n', bottom_toolbar=HTML(speck_time["prompts"][3]), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
+"fNumber": prompt(f'What is the number you are faxing to? 📠\n', bottom_toolbar=HTML(speck_time["prompts"][4]), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
+```
+## Upcoming features
+
+Features that are new or in the process of being implemented. These features are currently *Work in Progress* and still require patching to work properly but are plausible.
+
+### Faxing (no selenium)
+
+With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
+
+```Python
+import phaxio
+
+def faxIt(pt):
+    fileFaxing = f"Request- Last, First Med Recs Req.pdf"
+    phaxio = PhaxioApi('apiKEY', 'apiSECRET')
+    phaxio.Fax.send(
+        to='receivingNumber',
+        files=fileFaxing
+    )
+faxIt(patient)
+```
+
