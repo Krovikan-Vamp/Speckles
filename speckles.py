@@ -95,7 +95,7 @@ def speckles():
         'name': 'Speckles, the Kanye Enthusiast 🎵 ',
         'prompts': yeQuotes
     }, {
-        'name': 'Speckles, the Trip Planner 🚗 ',
+        'name': 'Speckles, the Activity Planner 🚗 ',
         'prompts': activities
     }]
 
