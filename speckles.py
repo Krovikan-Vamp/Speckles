@@ -82,15 +82,17 @@ def speckles():
     for n in range(5):
         # Kayne quotes
         quote = json.loads(requests.get('https://api.kanye.rest/').text)
-        bQuote = json.loads(requests.get('https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
+        bQuote = json.loads(requests.get(
+            'https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
         yeQuotes.append(quote['quote'])
-        
+
         # Activities
         action = json.loads(requests.get(
             'https://www.boredapi.com/api/activity').text)
         activities.append(
             f"With {action['participants']} person/people you can... {action['activity']}.")
-        bookQuotes.append(f'"{bQuote[n]["quote_body"]} - {bQuote[n]["quote_author"]}"')
+        bookQuotes.append(
+            f'"{bQuote[n]["quote_body"]} - {bQuote[n]["quote_author"]}"')
 
     responses = [{
         'name': 'Speckles, the Meteorologist 📡',
@@ -111,7 +113,6 @@ speckles()
 
 
 def main():
-    # 
     speck_time = random.choice(responses)
     os.system('cls')
     firebase_admin.initialize_app(credentials.Certificate(
@@ -134,7 +135,7 @@ def main():
         for doc in docs:
             # sleep(.25)
             for [key, value] in doc.items():
-                # print(f'{key} ==> {value}')
+                print(f'{key} ==> {value}')
                 doc[key] = decrypt(value)
         keys = ['fax', 'phone', 'dr', 'procedure']
 
@@ -287,13 +288,15 @@ def main():
         chromedriver_autoinstaller.install()
         driver = webdriver.Chrome(service=Service())
         driver.get('https://secure.ipfax.net/')
+        sleep(2)
         # Login to the fax service
         driver.find_element(
             by=By.XPATH, value='/html/body/form[1]/div/div[1]/input').send_keys('6233221504')
         driver.find_element(
-            by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('6233221504!')
+            by=By.XPATH, value='/html/body/form[1]/div/div[2]/input').send_keys('6233221504')
         driver.find_element(
             by=By.XPATH, value='/html/body/form[1]/div/div[4]/input').click()
+        sleep(2)
         driver.find_element(
             by=By.XPATH, value='/html/body/form[1]/div/div[5]/div/input').click()
 
@@ -308,19 +311,13 @@ def main():
             by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[1]/div[2]/input').click()
         driver.find_element(
             by=By.XPATH, value='/html/body/form[1]/div/div/div[2]/div[2]/div[7]/button').click()
-
+        sleep(1)
         # Choose file with PyAutoGui
-        # sleep(2)
-        # pag.hotkey('ctrl', 'l')
-        # pag.write(f'S:\\')
-        # pag.press('enter', 2, 1)
-        sleep(2)
-        pag.write(
-            f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.pdf')
-        # pag.press('tab', 4, 0.25)
-        # pag.press('down')
-        # pag.press('up')
+        pag.hotkey('ctrl', 'l')
+        pag.write('S:\\')
         pag.press('enter')
+        sleep(10)
+
         # Sleep to allow ipfax to process file
         sleep(2)
 
