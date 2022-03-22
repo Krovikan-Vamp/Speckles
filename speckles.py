@@ -1,3 +1,4 @@
+from msilib.schema import Error
 import re
 import os
 import inquirer
@@ -108,23 +109,39 @@ def speckles():
         'prompts': bookQuotes
     }]
 
+def decryptRSA(key, encrypted_data):
+    new_data = rsa.decrypt(encrypted_data,key)
+    return new_data.decode()
 
 speckles()
 
 
 def main():
     speck_time = random.choice(responses)
+    privKey = rsa.PrivateKey.load_pkcs1(open("privKey.pem", "rb").read())
     os.system('cls')
     firebase_admin.initialize_app(credentials.Certificate(
         './sa.json'), {'storageBucket': 'fourpeaks-sc.appspot.com'})
     db = firestore.client()
-
+    
     # Create Suggestions
     raw_docs = db.collection(u'Auto Suggestions').stream()
     docs = []
+    name_suggs = []
     suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
         'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
+    
+    raw_data = db.collection('Names Collected').stream()
 
+    for doc in raw_data:
+        file = doc.to_dict()
+        stuff = decryptRSA(privKey, file["data"])
+
+        try:
+            name_suggs.index(stuff)
+        except ValueError:
+            name_suggs.append(stuff)
+            pass
     os.system('cls')
 
     # Makes the docs usable as dicts
@@ -135,7 +152,6 @@ def main():
         for doc in docs:
             # sleep(.25)
             for [key, value] in doc.items():
-                print(f'{key} ==> {value}')
                 doc[key] = decrypt(value)
         keys = ['fax', 'phone', 'dr', 'procedure']
 
@@ -174,7 +190,7 @@ def main():
 
     og_prompt['docs'].append('Faxcover')
     patient = {
-        "ptName": input(f'What is the {Fore.RED}name of the patient{Style.RESET_ALL}? 🧍\n'),
+        "ptName": prompt(f'What is the name of the patient? 🧍\n', completer=FuzzyCompleter(WordCompleter(name_suggs)), complete_in_thread=True, complete_while_typing=True),
         "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}? 📅\n"),
         "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}? 📅\n'),
         "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(speck_time["prompts"][0]), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),

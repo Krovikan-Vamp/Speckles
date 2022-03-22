@@ -17,7 +17,7 @@ def send_glob_to_firestore():
         with open(file, 'rb') as f:
             db.collection('Names Collected').document().set({"data": f.read()})
             print(f'Heres the data: {type(f.read())}')
-            print(str(f.read()))
+            print(str(f))
 
 def use_blobs():
     raw_data = db.collection('Names Collected').stream()
@@ -30,4 +30,4 @@ def use_blobs():
         data.append(stuff)
     print(data)
 
-use_blobs()
+send_glob_to_firestore()
