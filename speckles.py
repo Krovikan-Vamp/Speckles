@@ -1,4 +1,3 @@
-from msilib.schema import Error
 import re
 import os
 import inquirer
