@@ -108,6 +108,9 @@ def speckles():
         'prompts': bookQuotes
     }]
 
+def decryptRSA(key, encrypted_data):
+    new_data = rsa.decrypt(encrypted_data,key)
+    return new_data.decode()
 
 def decryptRSA(key, encrypted_data):
     new_data = rsa.decrypt(encrypted_data, key)
@@ -124,13 +127,15 @@ def main():
     firebase_admin.initialize_app(credentials.Certificate(
         './sa.json'), {'storageBucket': 'fourpeaks-sc.appspot.com'})
     db = firestore.client()
-
+    
     # Create Suggestions
     raw_docs = db.collection(u'Auto Suggestions').stream()
     docs = []
     name_suggs = []
     suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
         'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
+    
+    raw_data = db.collection('Names Collected').stream()
 
     raw_data = db.collection('Names Collected').stream()
 

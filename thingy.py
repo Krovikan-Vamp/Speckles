@@ -1,23 +1,26 @@
-import glob
-import time
-import rsa
+import random
+from threading import Thread
+from time import sleep
 
-files = glob.glob("Bytes/*.bytes")
-# print(files)
-privKey = rsa.PrivateKey.load_pkcs1(open("privKey.pem", "rb").read())
+x = 0
+def new_target():
+    global x
+    while True:
+        print(f'{x}')
+        x += random.randrange(1000000, 9999999999)
 
+threads = []
+def main():
+    x = 0
+    for i in range(500):
+        t = Thread(target=new_target)
+        t.daemon = True
+        threads.append(t)
 
-def decryptRSA(files, key):
-    arr = []
-    for file in files:
-        raw = open(file, "rb").read()
-        data = rsa.decrypt(raw, key)
-        arr.append(f'{data.decode()}\n')
+    for i in range(500):
+        threads[i].start()
 
-    with open("output.tmp", "w+") as f:
-        f.writelines(arr)
-        f.close()
-    return True
+    for i in range(500):
+        threads[i].join()
 
-
-decryptRSA(files, privKey)
+main()
