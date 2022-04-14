@@ -108,9 +108,11 @@ def speckles():
         'prompts': bookQuotes
     }]
 
+
 def decryptRSA(key, encrypted_data):
-    new_data = rsa.decrypt(encrypted_data,key)
+    new_data = rsa.decrypt(encrypted_data, key)
     return new_data.decode()
+
 
 def decryptRSA(key, encrypted_data):
     new_data = rsa.decrypt(encrypted_data, key)
@@ -127,14 +129,14 @@ def main():
     firebase_admin.initialize_app(credentials.Certificate(
         './sa.json'), {'storageBucket': 'fourpeaks-sc.appspot.com'})
     db = firestore.client()
-    
+
     # Create Suggestions
     raw_docs = db.collection(u'Auto Suggestions').stream()
     docs = []
     name_suggs = []
     suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
         'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
-    
+
     raw_data = db.collection('Names Collected').stream()
 
     raw_data = db.collection('Names Collected').stream()
@@ -199,6 +201,7 @@ def main():
         "ptName": prompt(f'What is the name of the patient? 🧍\n', completer=FuzzyCompleter(WordCompleter(name_suggs)), complete_in_thread=True, complete_while_typing=True),
         "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}? 📅\n"),
         "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}? 📅\n'),
+        "sentBy": "ZH", # If you aren't Zack, please adjust to your initials!
         "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(speck_time["prompts"][0]), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
         "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML(speck_time["prompts"][1]), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
         "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML(speck_time["prompts"][2]), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
@@ -339,7 +342,6 @@ def main():
         pag.write('S:\\')
         pag.press('enter')
         sleep(10)
-
 
         # Send the fax
         driver.find_element(
