@@ -73,7 +73,7 @@ def encrypt2(data):
 def speckles():
     global responses
     weather_speck = json.loads(requests.get(
-        'https://api.openweathermap.org/data/2.5/weather?q=Sun City&units=imperial&appid=396b8dda92a5079f3bbf2704d32fc382').text)
+        r'https://api.openweathermap.org/data/2.5/weather?q=Sun%20City&units=imperial&appid=396b8dda92a5079f3bbf2704d32fc382').text)
 
     yeQuotes = []
     bookQuotes = []
@@ -92,7 +92,7 @@ def speckles():
         activities.append(
             f"With {action['participants']} person/people you can... {action['activity']}.")
         bookQuotes.append(
-            f'"{bQuote[n]["quote_body"]} - {bQuote[n]["quote_author"]}"')
+            f'"{bQuote[n]["quote_body"]}" - {bQuote[n]["quote_author"]}')
 
     responses = [{
         'name': 'Speckles, the Meteorologist 📡',

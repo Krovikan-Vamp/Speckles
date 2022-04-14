@@ -30,5 +30,5 @@ def use_blobs():
         data.append(stuff)
     print(data)
 
-# send_glob_to_firestore()
-use_blobs()
+send_glob_to_firestore()
+# use_blobs()
