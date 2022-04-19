@@ -210,8 +210,8 @@ def main():
         "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
-        "urgency": 'URGENT',
-        "yourName": 'Zackery H./Franchesca G.',
+        "urgency": 'STAT',
+        "yourName": 'Zackery H.',
     }
     os.system('cls')
 
