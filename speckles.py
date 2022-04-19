@@ -265,21 +265,9 @@ def main():
                 'dr': encrypt2(patient['drName']), 'procedure': encrypt2(patient['procedureName']), 'n': encrypt2(patient['ptName'])}
     db.collection('Auto Suggestions').document().set(new_info)
 
-    def add_storage(pt):
-        # time.time()
-        stamp = str(time.time())
-        encName = rsa.encrypt(pt['ptName'].encode(), pubKey)
-        os.system('cd Bytes')
-        with open(f"{stamp}.bytes", "wb") as f:
-            f.write(encName)
-            f.close()
+    encName = rsa.encrypt(patient['ptName'].encode(), pubKey)
+    db.collection('Names Collected').document().set({'data': encName})
 
-        bucket = storage.bucket()
-        fileName = f'{stamp}.bytes'
-        blob = bucket.blob(fileName)
-        blob.upload_from_filename(fileName)
-        os.system(f'powershell mv {fileName} Bytes')
-    add_storage(patient)
     # Write to excel
     wb = oxl.Workbook()  # Create workbook
     ws = wb.active  # Set active worksheet
