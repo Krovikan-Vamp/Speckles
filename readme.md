@@ -14,7 +14,8 @@ The goal of this project is to save the company time and money by automating maj
 3. Download [Visual Studio Code](https://code.visualstudio.com/) as an administrator 
 4. Request a Service Account key from the [administrator](https://github.com/Krovikan-Vamp)
     - Ensure the Account key is stored in the root directory of the cloned repository.
-5. Install the dependencies from the reqs file using `pip install -r requirements.txt`
+5. Obtain the `privKey.pem` from Zack as the program will not work without it, and it is used to decrypt the information input and output
+6. Install the dependencies from the reqs file using `pip install -r requirements.txt`
 
 ## Using the Script
 
