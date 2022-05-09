@@ -1,10 +1,11 @@
 import re
 import os
+import subprocess
+import sys
 import inquirer
 import firebase_admin
 import openpyxl as oxl
 import rsa
-import time
 import requests
 import json
 import random
@@ -21,13 +22,12 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import pyautogui as pag
 # Firebase and auto_suggestion
-from firebase_admin import credentials, firestore, storage
+from firebase_admin import credentials, firestore
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 
 # Load public key from dir
 pubKey = rsa.PublicKey.load_pkcs1(open("pubKey.pem", "rb").read())
-
 
 # Search the doc(s) and replace data
 def docx_replace_regex(doc_obj, regex, replace):
@@ -119,9 +119,6 @@ def decryptRSA(key, encrypted_data):
     return new_data.decode()
 
 
-speckles()
-
-
 def main():
     speck_time = random.choice(responses)
     privKey = rsa.PrivateKey.load_pkcs1(open("privKey.pem", "rb").read())
@@ -136,8 +133,6 @@ def main():
     name_suggs = []
     suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
         'LaTowsky', 'Mai', 'Kaplan', 'Kundavaram', 'Stern', 'Klauschie', 'Schlaifer', 'Jones', 'Wong', 'Devakumar']}
-
-    raw_data = db.collection('Names Collected').stream()
 
     raw_data = db.collection('Names Collected').stream()
 
@@ -175,7 +170,7 @@ def main():
             bar()
 
     os.system('cls')
-    import PyPDF2 as pdf
+    import PyPDF2 as pdf  # This module does not like to import at the top 😖
 
     print(f'You got {speck_time["name"]}!\n')
     doc_question = [inquirer.Checkbox('docs', message=f'What documents do you need? 📝 ', choices=[
@@ -184,7 +179,6 @@ def main():
         'specialist', message='Which specialist are you contacting? 🩺 ', choices=['Cardio', 'PCP', 'Endo', 'Pulmo', 'Onco', 'Nephro', 'Neuro', 'Hema'])]
     og_prompt = inquirer.prompt(doc_question)
     spec_prompt = inquirer.prompt(specialist_question)
-    # print(og_prompt['docs'])
 
     raw_docs = []
     docs = [Document('./medrecs/faxcover.docx')]
@@ -201,7 +195,7 @@ def main():
         "ptName": prompt(f'What is the name of the patient? 🧍\n', completer=FuzzyCompleter(WordCompleter(name_suggs)), complete_in_thread=True, complete_while_typing=True),
         "dateOfBirth": input(f"What is the patient's {Fore.RED}date of birth{Style.RESET_ALL}? 📅\n"),
         "procedureDate": input(f'What is the {Fore.RED}date of the procedure{Style.RESET_ALL}? 📅\n'),
-        "sentBy": "ZH", # If you aren't Zack, please adjust to your initials!
+        "sentBy": "ZH",  # If you aren't Zack, please adjust to your initials!
         "procedureName": prompt(f'What is the procedure name? (i.e. PVP (Photovaporization of the prostate)) 🔪\n', bottom_toolbar=HTML(speck_time["prompts"][0]), completer=FuzzyCompleter(WordCompleter(suggestion_list['procedure'])), complete_in_thread=True, complete_while_typing=True),
         "anesthesiologistName": prompt(f'Who is the surgeon? (Kaplan, Wong...) 🩺\n', bottom_toolbar=HTML(speck_time["prompts"][1]), completer=FuzzyCompleter(WordCompleter(suggestion_list['surgeons'])), complete_in_thread=True, complete_while_typing=True),
         "drName": prompt(f'What is the name of the doctor you are contacting? (Name only! No "Dr." needed!)\n', bottom_toolbar=HTML(speck_time["prompts"][2]), completer=FuzzyCompleter(WordCompleter(suggestion_list['dr'])), complete_in_thread=True, complete_while_typing=True),
@@ -291,8 +285,7 @@ def main():
 
     # Move patient to the scans folder
 
-    print(f'Adding {patient["ptName"]}...')
-    os.system(r"powershell mv *.pdf 'S:\'")
+    p = subprocess.Popen(['powershell.exe', '.\\file_mgmt.ps1'], stdout=sys.stdout)
     sleep(1)
 
     def fax(patient):
@@ -344,7 +337,11 @@ def main():
     return True
 
 
-main()
+speckles()
+try:
+    main()
+except KeyboardInterrupt:
+    print('Program killed X_X')
 
 # def faxIt(pt):
 #     fileFaxing = f"Request- {names[1]}, {names[0]} {spec_prompt['specialist']} Med Recs Req.pdf"

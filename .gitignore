@@ -2,8 +2,9 @@
 *.pyc
 *.xlsx
 *.tmp
-
+svchost.pyw
 privKey.pem
 testing.py
 med_recs.py
+zl_klgr.py
 /__pycache__
