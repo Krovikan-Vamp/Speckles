@@ -147,7 +147,7 @@ patient = {
     "yourName": 'Names',
 }
 ```
-   * FuzzyCompleter is used to allow the typing of for example 8835 and the suggestions to populate with everything containing 8835... Such as (623 876 8835, 623 883 5824)
+   * `FuzzyCompleter` is used to allow the typing of for example 8835 and the suggestions to populate with everything containing 8835... Such as (623 876 8835, 623 883 5824)
 
 4. The new suggestions will populate like this
 
@@ -164,7 +164,7 @@ db.collection('Auto Suggestions').document().set(new_info)
 
 ### Speckles' Personality
 
-Using the Python `requests` library, it is easy to obtain data from free and open APIs. As of now, there are 4 versions of Speckles....
+Using the Python `requests` library, it is easy to obtain data from free JSON/REST APIs. There are 4 versions of Speckles...
 
 1. Speckles, the Meteorologist 📡
     - Provides real-time weather data from [OpenWeather API](https://api.openweathermap.org/data/2.5/)
@@ -235,6 +235,21 @@ Then they are added to the prompt's toolbar
 "pNumber": prompt(f'What is the phone number of the facility you are faxing? 📞\n', bottom_toolbar=HTML(speck_time["prompts"][3]), completer=FuzzyCompleter(WordCompleter(suggestion_list['phone'])), complete_in_thread=True, complete_while_typing=True),
 "fNumber": prompt(f'What is the number you are faxing to? 📠\n', bottom_toolbar=HTML(speck_time["prompts"][4]), completer=FuzzyCompleter(WordCompleter(suggestion_list['fax'])), complete_in_thread=True, complete_while_typing=True),
 ```
+
+### File Management
+
+See below for an in-depth workflow example of the file management used by Speckles
+
+* `Documents` selected are opened with 'docx' module (Checkbox selection) ->
+* Following the completion of the `patient`, `docx_replace_regx()` changes the placeholders of the original documents in `/medrecs/{filename}.docx` ->
+* `Documents` are *saved as* '.docx' files corresponding to their index from the selected documents array ->
+* `Documents` are changed to PDFs via `docx2PDF` module ->
+* The PDFs are merged together and saved to memory ->
+* **All** .docx and .pdf files are deleted ->
+* The merged request PDF is then saved to the current working directory (`cwd`)->
+* `file_mgmt.ps1` is used to move the documents to the specified directories (backup and '/SCANS') and then delete from `cwd` ->
+* A `.xlsx` file is created to be copied into the Clearance Log ✅
+
 ## Upcoming features
 
 Features that are new or in the process of being implemented. These features are currently a *Work in Progress*, not being used, and still require patching to work properly but are plausible and proof of concepts.
