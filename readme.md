@@ -6,15 +6,16 @@ The goal of this project is to save the company time and money by automating maj
 
 ## Installation
 
-1. Make sure [Python](https://www.python.org/downloads/) version >= 3.10.1 is installed locallay
-    - This requires administrator privileges on company/AUUA machines
+1. Make sure [Python](https://www.python.org/downloads/) version >= 3.10.1 is installed locally
+    - This requires administrator privileges on company Four Peaks/AUUA machines
     - Contact Zack or IT support (XLCON) to install Python on another user to keep OSC user non-admin
     - Make sure Python was added to PATH env variable
 2. Clone the [repository](https://github.com/Krovikan-Vamp/Python/) to the desired path
 3. Download [Visual Studio Code](https://code.visualstudio.com/) as an administrator 
 4. Request a Service Account key from the [administrator](https://github.com/Krovikan-Vamp)
     - Ensure the Account key is stored in the root directory of the cloned repository.
-5. Install the dependencies from the reqs file using `pip install -r reqs.txt`
+5. Obtain the `privKey.pem` from Zack as the program will not work without it, and it is used to decrypt the information input and output
+6. Install the dependencies from the reqs file using `pip install -r requirements.txt`
 
 ## Using the Script
 
@@ -35,10 +36,12 @@ The goal of this project is to save the company time and money by automating maj
     - Fill out the selected word docs queried by the [first question](https://user-images.githubusercontent.com/97307321/151602884-4a5c52ae-afc7-4c9b-abb9-596e03dd7649.png)
     - Create PDF files out of the documents edited using [Py2PDF](https://pypi.org/project/py2pdf/)
     - Delete created temporary files (.pdf & .docx)
-    - Merges and saves the files to a single, correctly named ('Request- Last, First Med Recs Req.pdf') files using [PyPDF2](https://pypi.org/project/PyPDF2/)
-    - Writes the properties of the `dict` to a new .xlsx file with the same name as the PDF using [openpyxl](https://pypi.org/project/openpyxl/)
+    - Merges and saves the files to a single, correctly named ('Request- Last, First Med Recs Req.pdf') files using [PyPDF2](https://pypi.org/project/PyPDF2/) -> (different than Py2PDF!)
+    - Writes the properties of the `dict` -> (patient information) to a new .xlsx file with the same name as the PDF using [openpyxl](https://pypi.org/project/openpyxl/)
 
 ## Features
+
+Learn about more of the cool things Speckle's can do and what he has to offer! This section is mainly for convinience clarity and transparency for HIPAA and other privacy reasons, as is all the source code open source!
 
 ### Faxing
 
@@ -222,7 +225,7 @@ def main():
     speck_time = random.choice(responses)
 ```
 
-Then they are added to the prompts' toolbar
+Then they are added to the prompt's toolbar
 
 ```Python
 
@@ -234,9 +237,9 @@ Then they are added to the prompts' toolbar
 ```
 ## Upcoming features
 
-Features that are new or in the process of being implemented. These features are currently *Work in Progress* and still require patching to work properly but are plausible.
+Features that are new or in the process of being implemented. These features are currently a *Work in Progress*, not being used, and still require patching to work properly but are plausible and proof of concepts.
 
-### Faxing (no selenium)
+### Faxing (*without Selenium*)
 
 With all of this time saved using this script, the only piece of the puzzle left is to fax and receive files. This can be achieved using an API called [Phaxio](https://www.phaxio.com/). The required code to send the file created by this file has been commented out from the [main file](https://github.com/Krovikan-Vamp/Python/blob/master/docx-test.py) and can be seen below...
 
@@ -244,10 +247,10 @@ With all of this time saved using this script, the only piece of the puzzle left
 import phaxio
 
 def faxIt(pt):
-    fileFaxing = f"Request- Last, First Med Recs Req.pdf"
-    phaxio = PhaxioApi('apiKEY', 'apiSECRET')
+    fileFaxing = f"Request- $Last, $First Med Recs Req.pdf"
+    phaxio = PhaxioApi('$apiKEY', '$apiSECRET')
     phaxio.Fax.send(
-        to='receivingNumber',
+        to='$receivingNumber',
         files=fileFaxing
     )
 faxIt(patient)
