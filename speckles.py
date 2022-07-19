@@ -26,10 +26,9 @@ from firebase_admin import credentials, firestore
 from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 
-# Load public key from dir
-pubKey = rsa.PublicKey.load_pkcs1(open("pubKey.pem", "rb").read())
-
 # Search the doc(s) and replace data
+
+
 def docx_replace_regex(doc_obj, regex, replace):
 
     for p in doc_obj.paragraphs:
@@ -77,20 +76,20 @@ def speckles():
 
     yeQuotes = []
     bookQuotes = []
-    activities = []
+    # activities = []
 
+    bQuote = json.loads(requests.get(
+        'https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
     for n in range(5):
         # Kayne quotes
         quote = json.loads(requests.get('https://api.kanye.rest/').text)
-        bQuote = json.loads(requests.get(
-            'https://www.quotepub.com/api/widget/?type=rand&limit=5').text)
         yeQuotes.append(quote['quote'])
 
         # Activities
-        action = json.loads(requests.get(
-            'https://www.boredapi.com/api/activity').text)
-        activities.append(
-            f"With {action['participants']} person/people you can... {action['activity']}.")
+        # action = json.loads(requests.get(
+        #     'https://www.boredapi.com/api/activity').text)
+        # activities.append(
+        #     f"With {action['participants']} person/people you can... {action['activity']}.")
         bookQuotes.append(
             f'"{bQuote[n]["quote_body"]}" - {bQuote[n]["quote_author"]}')
 
@@ -100,9 +99,6 @@ def speckles():
     }, {
         'name': 'Speckles, the Kanye Enthusiast 🎵 ',
         'prompts': yeQuotes
-    }, {
-        'name': 'Speckles, the Activity Planner 🚗 ',
-        'prompts': activities
     }, {
         'name': 'Speckles, The Philosopher 🤓',
         'prompts': bookQuotes
@@ -204,7 +200,7 @@ def main():
         "forms": og_prompt["docs"],
         "dateOfFax": dt.today().strftime("%B %d, %Y"),
         "numberOfPages": str(len(docs)),
-        "urgency": 'STAT',
+        "urgency": '- STAT',
         "yourName": 'Zackery H.',
     }
     os.system('cls')
@@ -263,7 +259,7 @@ def main():
     db.collection('Names Collected').document().set({'data': encName})
 
     # Write to excel
-    wb = oxl.Workbook()  # Create workbook
+    wb = oxl.load_workbook('Requests.xlsx')  # Load records requests workbook
     ws = wb.active  # Set active worksheet
 
     col = 1
@@ -273,19 +269,21 @@ def main():
     patient['pNumber'] = patient['pNumber'].replace(' ', '.')
     patient['pNumber'] = patient['pNumber'].replace('-', '.')
     patient['drName'] = f'{spec_prompt["specialist"]}: {patient["drName"]}'
+
+    rowToWrite = ws.max_row + 1
     for key, value in patient.items():
         try:
             igs.index(key)  # See if key is ignored
         except ValueError:
-            ws.cell(1, col, value)  # Write the data
+            ws.cell(rowToWrite, col, value)  # Write the data
             col += 1
         pass
-    wb.save(
-        f'Request- {names[1]}, {names[0]} {spec_prompt["specialist"]} Med Recs Req.xlsx')
+    wb.save(f'Requests.xlsx')
 
     # Move patient to the scans folder
 
-    p = subprocess.Popen(['powershell.exe', '.\\file_mgmt.ps1'], stdout=sys.stdout)
+    p = subprocess.Popen(
+        ['powershell.exe', '.\\file_mgmt.ps1'], stdout=sys.stdout)
     sleep(1)
 
     def fax(patient):
@@ -337,22 +335,26 @@ def main():
     return True
 
 
+# Load public key from dir
+pubKey = rsa.PublicKey.load_pkcs1(open("pubKey.pem", "rb").read())
 speckles()
 try:
     main()
 except KeyboardInterrupt:
-    print('Program killed X_X')
+    print('Program killed 🔪 X_X 🔪')
 
-# def faxIt(pt):
-#     fileFaxing = f"Request- {names[1]}, {names[0]} {spec_prompt['specialist']} Med Recs Req.pdf"
-#     pt['fNumber'] = pt['fNumber'].replace(' ', '.')
-#     pt['fNumber'] = pt['fNumber'].replace('-', '.')
-#     faxNumber = pt['fNumber']
-#     phaxio = PhaxioApi('7kgdmam2fdb4b3526751we7s5dim88s0u7n3kwxe',
-#                        'bncxks0w76uods89k57h2kjvo8ykjxlytd306vnp')
-#     phaxio.Fax.send(
-#         to=faxNumber,
-#         files=fileFaxing,
-#         # direction='received'
-#     )
-# faxIt(patient)
+"""
+def faxIt(pt):
+    fileFaxing = f"Request- {names[1]}, {names[0]} {spec_prompt['specialist']} Med Recs Req.pdf"
+    pt['fNumber'] = pt['fNumber'].replace(' ', '.')
+    pt['fNumber'] = pt['fNumber'].replace('-', '.')
+    faxNumber = pt['fNumber']
+    phaxio = PhaxioApi('7kgdmam2fdb4b3526751we7s5dim88s0u7n3kwxe',
+                       'bncxks0w76uods89k57h2kjvo8ykjxlytd306vnp')
+    phaxio.Fax.send(
+        to=faxNumber,
+        files=fileFaxing,
+        # direction='received'
+    )
+faxIt(patient)
+"""
