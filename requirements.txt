@@ -71,7 +71,7 @@ ipython==8.0.1
 jedi==0.18.1
 jinxed==1.1.0
 jupyter-client==7.1.1
-jupyter-core==4.9.1
+jupyter-core==4.11.2
 Levenshtein==0.17.0
 libmagic==1.0
 lxml==4.9.1
