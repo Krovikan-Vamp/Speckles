@@ -163,3 +163,4 @@ wsproto==1.1.0
 XlsxWriter==3.0.2
 zope.event==4.5.0
 zope.interface==5.4.0
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
