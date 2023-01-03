@@ -117,7 +117,7 @@ pymongo==4.0.2
 PyMsgBox==1.0.9
 pyOpenSSL==22.0.0
 pyparsing==3.0.7
-PyPDF2==1.27.5
+PyPDF2==2.10.6
 pyperclip==1.8.2
 PyRect==0.1.4
 PyScreeze==0.1.28
