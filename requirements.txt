@@ -39,7 +39,7 @@ et-xmlfile==1.1.0
 executing==0.8.2
 fast-autocomplete==0.9.0
 firebase-admin==5.2.0
-future==0.18.2
+future==0.18.3
 geocoder==1.38.1
 geographiclib==1.52
 geopy==2.2.0
