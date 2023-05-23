@@ -137,7 +137,7 @@ pyzmq==22.3.0
 rapidfuzz==1.9.1
 ratelim==0.1.6
 readchar==3.0.5
-requests==2.27.1
+requests==2.31.0
 rsa==4.8
 selenium==4.1.2
 six==1.16.0
