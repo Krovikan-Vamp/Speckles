@@ -57,7 +57,7 @@ google-resumable-media==2.1.0
 googleapis-common-protos==1.54.0
 grapheme==0.6.0
 greenlet==1.1.2
-grpcio==1.43.0
+grpcio==1.53.2
 grpcio-status==1.43.0
 h11==0.13.0
 httplib2==0.20.2
