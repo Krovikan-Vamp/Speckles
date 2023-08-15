@@ -146,7 +146,7 @@ sortedcontainers==2.4.0
 stack-data==0.1.4
 toml==0.10.2
 tomli==1.2.3
-tornado==6.1
+tornado==6.3.3
 tqdm==4.62.3
 traitlets==5.1.1
 trio==0.20.0
