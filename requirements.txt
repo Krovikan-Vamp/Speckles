@@ -43,7 +43,7 @@ future==0.18.2
 geocoder==1.38.1
 geographiclib==1.52
 geopy==2.2.0
-gevent==21.12.0
+gevent==23.9.0
 gevent-websocket==0.10.1
 google-api-core==2.4.0
 google-api-python-client==2.36.0
