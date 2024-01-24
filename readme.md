@@ -11,7 +11,7 @@ The goal of this project is to save the company time and money by automating maj
     - Contact Zack or IT support (XLCON) to install Python on another user to keep OSC user non-admin
     - Make sure Python was added to PATH env variable
 2. Clone the [repository](https://github.com/Krovikan-Vamp/Python/) to the desired path
-3. Download [Visual Studio Code](https://code.visualstudio.com/) as an administrator 
+3. Download [Visual Studio Code](https://code.visualstudio.com/) as an administrator
 4. Request a Service Account key from the [administrator](https://github.com/Krovikan-Vamp)
     - Ensure the Account key is stored in the root directory of the cloned repository.
 5. Obtain the `privKey.pem` from Zack as the program will not work without it, and it is used to decrypt the information input and output
@@ -29,7 +29,7 @@ The goal of this project is to save the company time and money by automating maj
 ## Script Instructions
 
 1. The following questions will be prompted to the user
-    > ![image](https://user-images.githubusercontent.com/97307321/151602884-4a5c52ae-afc7-4c9b-abb9-596e03dd7649.png) <br />
+    > ![image](https://user-images.githubusercontent.com/97307321/151602884-4a5c52ae-afc7-4c9b-abb9-596e03dd7649.png)
     > ![image](https://user-images.githubusercontent.com/97307321/151603137-4932240c-09af-46ea-88c4-ea063c67f32a.png)
 2. Fill out the prompted information
 3. The script will do the following
@@ -100,11 +100,12 @@ def fax(patient):
 
 ### Auto-Completion and Suggestions
 
-Another way to save time creating and sending out medical records is to auto-complete prompts given to the user. These include the surgeon, contacted physician name, phone, and fax numbers. 
+Another way to save time creating and sending out medical records is to auto-complete prompts given to the user. These include the surgeon, contacted physician name, phone, and fax numbers.
 
 Starting 1/31/2022 all data (physician name, phone, and fax numbers) submitted by the user will be stored in a [Firebase Firestore](https://firebase.google.com/products/firestore) database to be used by the program further. To provide the ability to use a new function [prompt](https://python-prompt-toolkit.readthedocs.io/en/master/index.html?) [python-prompt-toolkit](https://python-prompt-toolkit.readthedocs.io/en/master/) was the go-to choice for autocompletion.
 
 1. The first thing to do is grab all of the data from the database to create the suggestions with the [toolkit](https://python-prompt-toolkit.readthedocs.io/en/master/index.html).
+
 ```Python
 firebase_admin.initialize_app(credentials.Certificate('./sa.json'))
 db = firestore.client()
@@ -113,7 +114,8 @@ db = firestore.client()
 raw_docs = db.collection(u'Auto Suggestions').stream()
 ```
 
-2. Next step is aggregate the data to work with the [WordCompleter](https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/prompt_toolkit/completion/word_completer.py) function.
+- Next step is aggregate the data to work with the [WordCompleter](https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/prompt_toolkit/completion/word_completer.py) function.
+
 ```Python
 docs = []
 suggestion_list = {'fax': [], 'phone': [], 'dr': [], 'procedure': [], 'surgeons': [
@@ -129,7 +131,8 @@ for doc in docs:
         suggestion_list[key].append(doc[key])
 ```
 
-3. Following the aggregation of the data, implement it in the prompts given to the user.
+- Following the aggregation of the data, implement it in the prompts given to the user.
+
 ```Python
 patient = {
     "ptName": prompt(f'What is the name of the patient?\n'),
@@ -147,16 +150,17 @@ patient = {
     "yourName": 'Names',
 }
 ```
-   * `FuzzyCompleter` is used to allow the typing of for example 8835 and the suggestions to populate with everything containing 8835... Such as (623 876 8835, 623 883 5824)
 
-4. The new suggestions will populate like this
+- `FuzzyCompleter` is used to allow the typing of for example 8835 and the suggestions to populate with everything containing 8835... Such as (623 876 8835, 623 883 5824)
+
+1. The new suggestions will populate like this
 
 ![image](https://user-images.githubusercontent.com/97307321/151882380-cc661562-9a66-444e-b424-fab36dd1b180.png)
 ![image](https://user-images.githubusercontent.com/97307321/151882308-65956c20-d38a-4113-a938-607a84b77bcc.png)
 
-5. The 5th and final step is the new suggestions to the database to further improve the suggestions
+- The 5th and final step is the new suggestions to the database to further improve the suggestions
 
-```Python 
+```Python
 new_info = {'fax': patient['fNumber'], 'phone': patient['pNumber'],
             'dr': patient['drName'], 'procedure': patient['procedureName']}
 db.collection('Auto Suggestions').document().set(new_info)
@@ -240,15 +244,15 @@ Then they are added to the prompt's toolbar
 
 See below for an in-depth workflow example of the file management used by Speckles
 
-* `Documents` selected are opened with 'docx' module (Checkbox selection) ->
-* Following the completion of the `patient`, `docx_replace_regx()` changes the placeholders of the original documents in `/medrecs/{filename}.docx` ->
-* `Documents` are *saved as* '.docx' files corresponding to their index from the selected documents array ->
-* `Documents` are changed to PDFs via `docx2PDF` module ->
-* The PDFs are merged together and saved to memory ->
-* **All** .docx and .pdf files are deleted ->
-* The merged request PDF is then saved to the current working directory (`cwd`)->
-* `file_mgmt.ps1` is used to move the documents to the specified directories (backup and '/SCANS') and then delete from `cwd` ->
-* A `.xlsx` file is created to be copied into the Clearance Log ✅
+- `Documents` selected are opened with 'docx' module (Checkbox selection) ->
+- Following the completion of the `patient`, `docx_replace_regx()` changes the placeholders of the original documents in `/medrecs/{filename}.docx` ->
+- `Documents` are *saved as* '.docx' files corresponding to their index from the selected documents array ->
+- `Documents` are changed to PDFs via `docx2PDF` module ->
+- The PDFs are merged together and saved to memory ->
+- **All** .docx and .pdf files are deleted ->
+- The merged request PDF is then saved to the current working directory (`cwd`)->
+- `file_mgmt.ps1` is used to move the documents to the specified directories (backup and '/SCANS') and then delete from `cwd` ->
+- A `.xlsx` file is created to be copied into the Clearance Log ✅
 
 ## Upcoming features
 
@@ -270,4 +274,3 @@ def faxIt(pt):
     )
 faxIt(patient)
 ```
-
